@@ -962,16 +962,19 @@ export class ElementFactory {
         
         const handleMouseMove = (e) => {
             if (!isDragging) return;
-            
+
             const mousePos = this.canvas.getMousePosition(e);
             const dx = mousePos.x - startX;
             const dy = mousePos.y - startY;
-            
+
             const newX = this.canvas.snapToGrid(initialX + dx);
             const newY = this.canvas.snapToGrid(initialY + dy);
-            
+
             element.setAttribute('transform', `translate(${newX}, ${newY})`);
-            
+
+            // Keep spatial index in sync during drag
+            this.canvas.updateElementPosition(element);
+
             // Update connected wires
             this.updateConnectedWires(element);
             e.preventDefault();
@@ -995,6 +998,9 @@ export class ElementFactory {
                     x: newX,
                     y: newY
                 });
+
+                // Final spatial index update after drag ends
+                this.canvas.updateElementPosition(element);
                 
                 // Emit component-moved event for auto-routing
                 const event = new CustomEvent('component-moved', {
