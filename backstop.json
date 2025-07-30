@@ -1,0 +1,103 @@
+{
+  "id": "wiring_diagram_visual_regression",
+  "viewports": [
+    {
+      "label": "phone",
+      "width": 320,
+      "height": 480
+    },
+    {
+      "label": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "label": "desktop",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "label": "desktop-hd",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "label": "desktop-4k",
+      "width": 3840,
+      "height": 2160
+    }
+  ],
+  "onBeforeScript": "tests/visual/backstop/onBefore.js",
+  "onReadyScript": "tests/visual/backstop/onReady.js",
+  "scenarios": [
+    {
+      "label": "Empty Canvas",
+      "url": "http://localhost:5173",
+      "referenceUrl": "",
+      "readyEvent": "",
+      "readySelector": "#canvas-svg",
+      "delay": 1000,
+      "hideSelectors": [],
+      "removeSelectors": [],
+      "hoverSelector": "",
+      "clickSelector": "",
+      "postInteractionWait": 0,
+      "selectors": [],
+      "selectorExpansion": true,
+      "expect": 0,
+      "misMatchThreshold" : 0.1,
+      "requireSameDimensions": true
+    },
+    {
+      "label": "Component Palette",
+      "url": "http://localhost:5173",
+      "readySelector": ".palette",
+      "selectors": [".palette"],
+      "misMatchThreshold" : 0.1
+    },
+    {
+      "label": "Wire Tool Active",
+      "url": "http://localhost:5173",
+      "clickSelector": "[data-tool='wire']",
+      "postInteractionWait": 500,
+      "selectors": ["#wire-tools"],
+      "misMatchThreshold" : 0.1
+    },
+    {
+      "label": "Export Dialog",
+      "url": "http://localhost:5173",
+      "clickSelector": "#export-btn",
+      "postInteractionWait": 500,
+      "selectors": [".export-dialog"],
+      "misMatchThreshold" : 0.1
+    },
+    {
+      "label": "Component Library Panel",
+      "url": "http://localhost:5173",
+      "clickSelector": "#library-btn",
+      "postInteractionWait": 500,
+      "selectors": [".component-library-panel"],
+      "misMatchThreshold" : 0.1
+    }
+  ],
+  "paths": {
+    "bitmaps_reference": "tests/visual/backstop/bitmaps_reference",
+    "bitmaps_test": "tests/visual/backstop/bitmaps_test",
+    "engine_scripts": "tests/visual/backstop/engine_scripts",
+    "html_report": "tests/reports/backstop/html_report",
+    "ci_report": "tests/reports/backstop/ci_report"
+  },
+  "report": ["browser", "CI"],
+  "engine": "playwright",
+  "engineOptions": {
+    "browser": "chromium",
+    "args": ["--no-sandbox"],
+    "gotoParameters": {
+      "waitUntil": "networkidle0"
+    }
+  },
+  "asyncCaptureLimit": 5,
+  "asyncCompareLimit": 50,
+  "debug": false,
+  "debugWindow": false
+}

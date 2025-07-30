@@ -1,0 +1,18 @@
+/* Brushed steel texture using CSS gradients */
+.steel-texture {
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            #e0e0e0,
+            #e0e0e0 1px,
+            #f0f0f0 1px,
+            #f0f0f0 2px
+        ),
+        linear-gradient(
+            180deg,
+            #f5f5f5 0%,
+            #e8e8e8 50%,
+            #f5f5f5 100%
+        );
+    background-size: 2px 100%, 100% 100%;
+}

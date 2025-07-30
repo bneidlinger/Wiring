@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Library Test</title>
+    <link rel="stylesheet" href="src/componentLibrary/componentLibrary.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            margin-top: 0;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .test-section h2 {
+            margin-top: 0;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #1565c0;
+        }
+        
+        .btn-secondary {
+            background: #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #555;
+        }
+        
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .component-preview-area {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Component Library System Test</h1>
+        
+        <div class="test-section">
+            <h2>Library Management</h2>
+            <div class="test-controls">
+                <button class="btn" onclick="testCreateLibrary()">Create Library</button>
+                <button class="btn" onclick="testListLibraries()">List Libraries</button>
+                <button class="btn" onclick="testExportLibrary()">Export Library</button>
+                <button class="btn btn-secondary" onclick="testImportLibrary()">Import Library</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Component Operations</h2>
+            <div class="test-controls">
+                <button class="btn" onclick="testSearchComponents()">Search Components</button>
+                <button class="btn" onclick="testCreateCustomComponent()">Create Custom Component</button>
+                <button class="btn" onclick="testFavoriteComponent()">Toggle Favorite</button>
+                <button class="btn btn-secondary" onclick="testComponentVersioning()">Test Versioning</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>UI Panel Test</h2>
+            <div class="test-controls">
+                <button class="btn" onclick="toggleLibraryPanel()">Toggle Library Panel</button>
+                <button class="btn" onclick="testComponentTree()">Test Component Tree</button>
+                <button class="btn" onclick="testComponentEditor()">Test Component Editor</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Component Preview</h2>
+            <div class="component-preview-area" id="preview-area">
+                <p>Component preview will appear here</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Output</h2>
+            <div id="output">Test results will appear here...</div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { ComponentLibrary } from './src/componentLibrary/ComponentLibrary.js';
+        import { ComponentLibraryPanel } from './src/componentLibrary/ui/ComponentLibraryPanel.js';
+        
+        // Create mock state store
+        const mockStateStore = {
+            setDirty: () => {},
+            addListener: () => {},
+            state: {
+                project: {
+                    elements: [],
+                    wires: []
+                }
+            }
+        };
+        
+        // Create mock element factory
+        const mockElementFactory = {
+            createFromTemplate: (template, x, y) => {
+                log(`Created element from template: ${template.name} at (${x}, ${y})`);
+            }
+        };
+        
+        // Initialize component library
+        const componentLibrary = new ComponentLibrary(mockStateStore);
+        const libraryPanel = new ComponentLibraryPanel(componentLibrary, mockElementFactory);
+        
+        // Make available globally for testing
+        window.componentLibrary = componentLibrary;
+        window.libraryPanel = libraryPanel;
+        
+        // Logging function
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Test functions
+        window.testCreateLibrary = function() {
+            try {
+                const libraryId = componentLibrary.createLibrary(
+                    'Test Custom Library',
+                    'A test library for custom components',
+                    { author: 'Test User', tags: ['test', 'custom'] }
+                );
+                log(`✓ Created library with ID: ${libraryId}`);
+                
+                // Add a category
+                const categoryId = componentLibrary.addCategory(libraryId, 'Test Category', 'Test components');
+                log(`✓ Added category with ID: ${categoryId}`);
+            } catch (error) {
+                log(`✗ Error: ${error.message}`);
+            }
+        };
+        
+        window.testListLibraries = function() {
+            const libraries = componentLibrary.getAllLibraries();
+            log(`\n=== Libraries (${libraries.length}) ===`);
+            libraries.forEach(lib => {
+                const componentCount = Array.from(lib.categories.values())
+                    .reduce((sum, cat) => sum + cat.components.size, 0);
+                log(`- ${lib.name} (${lib.id})`);
+                log(`  Author: ${lib.author}`);
+                log(`  Categories: ${lib.categories.size}`);
+                log(`  Components: ${componentCount}`);
+                log(`  System: ${lib.isSystemLibrary ? 'Yes' : 'No'}`);
+            });
+        };
+        
+        window.testSearchComponents = function() {
+            const query = prompt('Enter search query:', 'reader');
+            if (!query) return;
+            
+            const results = componentLibrary.searchComponents(query);
+            log(`\n=== Search Results for "${query}" (${results.length}) ===`);
+            results.forEach(result => {
+                log(`- ${result.component.name} (${result.component.type})`);
+                log(`  Category: ${result.category.name}`);
+                log(`  Library: ${result.library.name}`);
+                log(`  Relevance: ${result.relevance}`);
+            });
+        };
+        
+        window.testCreateCustomComponent = function() {
+            const libraries = componentLibrary.getAllLibraries().filter(lib => !lib.isSystemLibrary);
+            if (libraries.length === 0) {
+                log('✗ No custom libraries found. Create a library first.');
+                return;
+            }
+            
+            const library = libraries[0];
+            const category = Array.from(library.categories.values())[0];
+            
+            if (!category) {
+                log('✗ No categories found in library. Add a category first.');
+                return;
+            }
+            
+            try {
+                const componentId = componentLibrary.createComponentFromElements(
+                    library.id,
+                    category.id,
+                    {
+                        name: 'Custom Test Component',
+                        metadata: {
+                            description: 'A test custom component',
+                            tags: ['custom', 'test'],
+                            author: 'Test User'
+                        },
+                        properties: {
+                            voltage: { type: 'select', value: '12V', options: ['12V', '24V'] },
+                            current: { type: 'number', value: 2, min: 0, max: 10, unit: 'A' }
+                        },
+                        terminals: [
+                            { id: 'power-in', type: 'power', position: 'left', label: 'PWR' },
+                            { id: 'signal-out', type: 'data', position: 'right', label: 'SIG' }
+                        ],
+                        dimensions: { width: 150, height: 100 }
+                    }
+                );
+                log(`✓ Created custom component with ID: ${componentId}`);
+            } catch (error) {
+                log(`✗ Error: ${error.message}`);
+            }
+        };
+        
+        window.testFavoriteComponent = function() {
+            const components = componentLibrary.searchComponents('');
+            if (components.length === 0) {
+                log('✗ No components found');
+                return;
+            }
+            
+            const component = components[0].component;
+            componentLibrary.toggleFavorite(component.id);
+            
+            const isFavorite = componentLibrary.favoriteComponents.has(component.id);
+            log(`✓ Component "${component.name}" is ${isFavorite ? 'now' : 'no longer'} a favorite`);
+            
+            const favorites = componentLibrary.getFavoriteComponents();
+            log(`Total favorites: ${favorites.length}`);
+        };
+        
+        window.testComponentVersioning = function() {
+            const components = componentLibrary.searchComponents('').filter(r => !r.component.isSystemComponent);
+            if (components.length === 0) {
+                log('✗ No custom components found');
+                return;
+            }
+            
+            const component = components[0].component;
+            log(`\n=== Component Version Test ===`);
+            log(`Current version: ${component.version}`);
+            
+            // Test version increment
+            const oldVersion = component.version.toString();
+            component.version.increment('minor');
+            log(`After minor increment: ${component.version}`);
+            
+            component.version.increment('patch');
+            log(`After patch increment: ${component.version}`);
+            
+            // Add changelog entry
+            component.version.addChangelogEntry({
+                changes: ['Added new terminals', 'Fixed connection bug'],
+                type: 'enhancement'
+            });
+            
+            log(`Version history: ${component.version.history.length} entries`);
+        };
+        
+        window.testExportLibrary = function() {
+            const libraries = componentLibrary.getAllLibraries().filter(lib => !lib.isSystemLibrary);
+            if (libraries.length === 0) {
+                log('✗ No custom libraries to export');
+                return;
+            }
+            
+            const library = libraries[0];
+            try {
+                const json = componentLibrary.exportLibrary(library.id);
+                log(`✓ Exported library "${library.name}"`);
+                log(`Export size: ${(json.length / 1024).toFixed(2)} KB`);
+                
+                // Create download link
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${library.name.replace(/\s+/g, '_')}.library.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                log(`✗ Export failed: ${error.message}`);
+            }
+        };
+        
+        window.testImportLibrary = function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const libraryId = componentLibrary.importLibrary(e.target.result);
+                        log(`✓ Imported library with ID: ${libraryId}`);
+                        testListLibraries();
+                    } catch (error) {
+                        log(`✗ Import failed: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        };
+        
+        window.toggleLibraryPanel = function() {
+            libraryPanel.toggle();
+            log(`Library panel is now ${libraryPanel.isVisible ? 'visible' : 'hidden'}`);
+        };
+        
+        window.testComponentTree = function() {
+            if (!libraryPanel.isVisible) {
+                libraryPanel.show();
+            }
+            
+            const library = componentLibrary.getActiveLibrary();
+            if (library) {
+                log(`✓ Component tree loaded for library: ${library.name}`);
+                log(`  Categories: ${library.categories.size}`);
+            }
+        };
+        
+        window.testComponentEditor = function() {
+            const components = componentLibrary.searchComponents('').filter(r => !r.component.isSystemComponent);
+            if (components.length === 0) {
+                log('✗ No custom components to edit');
+                return;
+            }
+            
+            const result = components[0];
+            log(`✓ Opening editor for component: ${result.component.name}`);
+            
+            // Simulate editing a component
+            libraryPanel.editor.loadComponent(result.component, result.category, result.library);
+            
+            if (!libraryPanel.isVisible) {
+                libraryPanel.show();
+            }
+            libraryPanel.switchView('editor');
+        };
+        
+        // Initial log
+        log('Component Library Test Suite Ready');
+        log('Click the buttons above to test different features');
+        
+        // List initial libraries
+        testListLibraries();
+    </script>
+</body>
+</html>
