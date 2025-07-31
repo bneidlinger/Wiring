@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Drag Functionality</title>
+    <script>
+        // Test script to verify drag functionality
+        function testDrag() {
+            console.log('=== Testing Drag Functionality ===');
+            
+            // Check if app is initialized
+            if (!window.wiringApp) {
+                console.error('App not initialized!');
+                return;
+            }
+            
+            const app = window.wiringApp;
+            console.log('Current tool:', app.currentTool);
+            console.log('Canvas mode:', app.canvas.mode);
+            
+            // Create a test component
+            console.log('Creating test component...');
+            const component = app.elementFactory.createElement('ACM', 200, 200);
+            console.log('Component created:', component);
+            
+            // Check drag handle
+            const dragHandle = component.querySelector('.component-drag-handle');
+            console.log('Drag handle found:', dragHandle);
+            
+            if (dragHandle) {
+                const styles = window.getComputedStyle(dragHandle);
+                console.log('Drag handle styles:', {
+                    cursor: styles.cursor,
+                    pointerEvents: styles.pointerEvents,
+                    fill: styles.fill,
+                    stroke: styles.stroke
+                });
+            }
+            
+            // Check component state
+            console.log('Component classes:', component.classList.toString());
+            console.log('Component transform:', component.getAttribute('transform'));
+            
+            // Simulate mouse events
+            console.log('\nSimulating mouse events...');
+            const rect = dragHandle.getBoundingClientRect();
+            const mouseDown = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2
+            });
+            
+            dragHandle.dispatchEvent(mouseDown);
+            console.log('After mousedown - Component has dragging class:', component.classList.contains('dragging'));
+            
+            // Check pan-zoom state
+            console.log('Pan enabled:', app.panZoomInstance.isPanEnabled());
+        }
+        
+        // Run test after page loads
+        window.addEventListener('load', () => {
+            setTimeout(testDrag, 1000);
+        });
+    </script>
+</head>
+<body>
+    <h1>Testing Drag Functionality</h1>
+    <p>Open the console to see test results.</p>
+    <p><a href="/">Back to main app</a></p>
+    
+    <script>
+        // Also add a button to manually test
+        const btn = document.createElement('button');
+        btn.textContent = 'Run Drag Test';
+        btn.onclick = testDrag;
+        document.body.appendChild(btn);
+    </script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drag Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #test-area {
+            border: 2px solid #ccc;
+            width: 800px;
+            height: 600px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .status {
+            text-align: center;
+            margin: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 20px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wiring Diagram Drag Test</h1>
+    
+    <div class="status" id="status">Loading...</div>
+    
+    <div class="controls">
+        <button onclick="createTestComponent()">Create Component</button>
+        <button onclick="testDrag()">Test Drag</button>
+        <button onclick="checkState()">Check State</button>
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="window.location.href='/'">Back to App</button>
+    </div>
+    
+    <div id="test-area">
+        <iframe id="app-frame" src="/" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        let app = null;
+        let logBuffer = [];
+        
+        function log(message, ...args) {
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry, ...args);
+            logBuffer.push(logEntry);
+            if (logBuffer.length > 100) logBuffer.shift();
+            updateLog();
+        }
+        
+        function updateLog() {
+            const logEl = document.getElementById('log');
+            logEl.innerHTML = logBuffer.map(entry => 
+                `<div>${entry.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`
+            ).join('');
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        function clearLog() {
+            logBuffer = [];
+            updateLog();
+        }
+        
+        function updateStatus(message, color = 'black') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.color = color;
+        }
+        
+        window.onload = () => {
+            const iframe = document.getElementById('app-frame');
+            
+            iframe.onload = () => {
+                setTimeout(() => {
+                    try {
+                        app = iframe.contentWindow.wiringApp;
+                        if (app) {
+                            updateStatus('App loaded successfully', 'green');
+                            log('App initialized');
+                            
+                            // Log initial state
+                            log('Current tool: ' + app.currentTool);
+                            log('Canvas mode: ' + app.canvas.mode);
+                            
+                            // Monitor tool changes
+                            const originalSelectTool = app.selectTool.bind(app);
+                            app.selectTool = function(tool) {
+                                log('Tool changed to: ' + tool);
+                                return originalSelectTool(tool);
+                            };
+                            
+                        } else {
+                            updateStatus('App not found in iframe', 'red');
+                            log('ERROR: wiringApp not found');
+                        }
+                    } catch (e) {
+                        updateStatus('Error accessing app: ' + e.message, 'red');
+                        log('ERROR: ' + e.message);
+                    }
+                }, 1000);
+            };
+        };
+        
+        function createTestComponent() {
+            if (!app) {
+                log('ERROR: App not loaded');
+                return;
+            }
+            
+            try {
+                log('Creating test component...');
+                const component = app.elementFactory.createElement('ACM', 300, 200);
+                log('Component created: ' + component.id);
+                
+                // Check drag handle
+                const dragHandle = component.querySelector('.component-drag-handle');
+                log('Drag handle found: ' + !!dragHandle);
+                
+                // Check drag helper
+                log('Has drag helper: ' + !!component._dragHelper);
+                
+                updateStatus('Component created: ' + component.id, 'green');
+            } catch (e) {
+                log('ERROR creating component: ' + e.message);
+                updateStatus('Error: ' + e.message, 'red');
+            }
+        }
+        
+        function testDrag() {
+            if (!app) {
+                log('ERROR: App not loaded');
+                return;
+            }
+            
+            try {
+                // Find a component to test
+                const iframe = document.getElementById('app-frame');
+                const components = iframe.contentDocument.querySelectorAll('.component');
+                
+                if (components.length === 0) {
+                    log('No components found. Create one first.');
+                    updateStatus('No components to test', 'orange');
+                    return;
+                }
+                
+                const component = components[0];
+                log('Testing drag on component: ' + component.id);
+                
+                // Get initial position
+                const transform = component.getAttribute('transform');
+                log('Initial transform: ' + transform);
+                
+                // Simulate drag
+                const dragHandle = component.querySelector('.component-drag-handle');
+                if (!dragHandle) {
+                    log('ERROR: No drag handle found');
+                    return;
+                }
+                
+                const rect = dragHandle.getBoundingClientRect();
+                const startX = rect.left + rect.width / 2;
+                const startY = rect.top + rect.height / 2;
+                
+                log('Simulating mousedown at: ' + startX + ', ' + startY);
+                
+                // Create and dispatch mouse events
+                const mouseDown = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: iframe.contentWindow,
+                    clientX: startX,
+                    clientY: startY
+                });
+                
+                dragHandle.dispatchEvent(mouseDown);
+                
+                // Check if dragging started
+                setTimeout(() => {
+                    const isDragging = component.classList.contains('dragging');
+                    log('Component dragging: ' + isDragging);
+                    
+                    if (isDragging) {
+                        updateStatus('Drag test successful!', 'green');
+                    } else {
+                        updateStatus('Drag did not start', 'red');
+                    }
+                }, 100);
+                
+            } catch (e) {
+                log('ERROR in drag test: ' + e.message);
+                updateStatus('Error: ' + e.message, 'red');
+            }
+        }
+        
+        function checkState() {
+            if (!app) {
+                log('ERROR: App not loaded');
+                return;
+            }
+            
+            log('=== Current State ===');
+            log('Tool: ' + app.currentTool);
+            log('Canvas mode: ' + app.canvas.mode);
+            log('Pan enabled: ' + app.panZoomInstance.isPanEnabled());
+            log('Zoom level: ' + app.panZoomInstance.getZoom());
+            
+            const iframe = document.getElementById('app-frame');
+            const components = iframe.contentDocument.querySelectorAll('.component');
+            log('Components on canvas: ' + components.length);
+            
+            components.forEach((comp, i) => {
+                log(`Component ${i}: ${comp.id} at ${comp.getAttribute('transform')}`);
+            });
+        }
+    </script>
+</body>
+</html>

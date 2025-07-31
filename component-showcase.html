@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Design Showcase</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f3f4f6;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 30px;
+        }
+        
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .component-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .component-card h2 {
+            margin: 0 0 15px 0;
+            color: #374151;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .component-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .terminal {
+            cursor: crosshair;
+            transition: all 0.2s ease;
+        }
+        
+        .terminal:hover {
+            r: 8;
+            fill: #3b82f6;
+            stroke: #2563eb;
+        }
+        
+        .component-drag-handle {
+            cursor: move;
+            transition: opacity 0.2s ease;
+        }
+        
+        .component:hover .component-drag-handle {
+            opacity: 0.3;
+            stroke: #3b82f6;
+            stroke-width: 3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Access Control System Components - Modern Design</h1>
+    
+    <div class="component-grid">
+        <div class="component-card">
+            <h2>ACM (Access Control Module)</h2>
+            <div class="component-container">
+                <svg id="acm-svg" width="450" height="200" viewBox="0 0 450 200"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>iSTAR G2 Controller</h2>
+            <div class="component-container">
+                <svg id="istar-svg" width="400" height="250" viewBox="0 0 400 250"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>Output Module</h2>
+            <div class="component-container">
+                <svg id="output-svg" width="350" height="200" viewBox="0 0 350 200"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>Card Reader</h2>
+            <div class="component-container">
+                <svg id="reader-svg" width="150" height="230" viewBox="0 0 150 230"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>Wireless Reader (WOR)</h2>
+            <div class="component-container">
+                <svg id="wor-svg" width="170" height="150" viewBox="0 0 170 150"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>RM-4 Module</h2>
+            <div class="component-container">
+                <svg id="rm4-svg" width="300" height="170" viewBox="0 0 300 170"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>Power Supply</h2>
+            <div class="component-container">
+                <svg id="psu-svg" width="250" height="270" viewBox="0 0 250 270"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>PAM Relay</h2>
+            <div class="component-container">
+                <svg id="pam-svg" width="150" height="150" viewBox="0 0 150 150"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>Door Strike</h2>
+            <div class="component-container">
+                <svg id="strike-svg" width="130" height="190" viewBox="0 0 130 190"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card">
+            <h2>REX Button</h2>
+            <div class="component-container">
+                <svg id="rex-svg" width="150" height="150" viewBox="0 0 150 150"></svg>
+            </div>
+        </div>
+        
+        <div class="component-card" style="grid-column: span 2;">
+            <h2>B9512G Control Panel</h2>
+            <div class="component-container">
+                <svg id="b9512g-svg" width="500" height="300" viewBox="0 0 500 300"></svg>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { ElementFactory } from './src/elementFactory.js';
+        
+        // Mock dependencies for showcase
+        const mockCanvas = {
+            gridSize: 10,
+            mode: 'select',
+            addComponent: () => {},
+            selectElement: () => {},
+            updateElementPosition: () => {}
+        };
+        
+        const mockStateStore = {
+            addElement: () => {},
+            updateElement: () => {},
+            saveToLocalStorage: () => {},
+            state: { project: { elements: [] } }
+        };
+        
+        const mockPanZoomInstance = {};
+        const mockComponentLibrary = {};
+        
+        const factory = new ElementFactory(mockCanvas, mockStateStore, mockPanZoomInstance, mockComponentLibrary);
+        
+        // Component configurations
+        const components = [
+            { type: 'ACM', svg: 'acm-svg', dimensions: { width: 400, height: 150 } },
+            { type: 'iSTAR', svg: 'istar-svg', dimensions: { width: 350, height: 200 } },
+            { type: 'OUTPUT', svg: 'output-svg', dimensions: { width: 300, height: 150 } },
+            { type: 'READER', svg: 'reader-svg', dimensions: { width: 100, height: 180 } },
+            { type: 'WOR', svg: 'wor-svg', dimensions: { width: 120, height: 100 } },
+            { type: 'RM4', svg: 'rm4-svg', dimensions: { width: 250, height: 120 } },
+            { type: 'PSU', svg: 'psu-svg', dimensions: { width: 200, height: 220 } },
+            { type: 'PAM', svg: 'pam-svg', dimensions: { width: 100, height: 100 } },
+            { type: 'STRIKE', svg: 'strike-svg', dimensions: { width: 80, height: 140 } },
+            { type: 'REX', svg: 'rex-svg', dimensions: { width: 100, height: 100 } },
+            { type: 'B9512G', svg: 'b9512g-svg', dimensions: { width: 450, height: 250 } }
+        ];
+        
+        // Create and display each component
+        components.forEach(config => {
+            const svg = document.getElementById(config.svg);
+            const graphics = factory.createComponentGraphics(config.type, config.dimensions);
+            
+            // Create a group to hold the component
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.setAttribute('transform', 'translate(25, 25)');
+            group.appendChild(graphics);
+            
+            svg.appendChild(group);
+        });
+    </script>
+</body>
+</html>

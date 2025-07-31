@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: #ef4444;
+            font-weight: 500;
+        }
+        .success {
+            color: #10b981;
+            font-weight: 500;
+        }
+        svg {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wiring Diagram Component Test</h1>
+        <div class="info">
+            <p>This page tests if the components render correctly after the gradient initialization fix.</p>
+            <p id="status">Loading...</p>
+        </div>
+        <svg id="test-svg" width="1000" height="600">
+            <defs id="svg-defs"></defs>
+        </svg>
+    </div>
+
+    <script type="module">
+        const statusEl = document.getElementById('status');
+        
+        try {
+            // Test creating gradients
+            const svg = document.getElementById('test-svg');
+            const defs = document.getElementById('svg-defs');
+            
+            // Create a simple gradient
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', 'testGradient');
+            gradient.innerHTML = `
+                <stop offset="0%" stop-color="#1e3a8a" />
+                <stop offset="50%" stop-color="#1e40af" />
+                <stop offset="100%" stop-color="#1d4ed8" />
+            `;
+            defs.appendChild(gradient);
+            
+            // Create a test rectangle
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', '50');
+            rect.setAttribute('y', '50');
+            rect.setAttribute('width', '200');
+            rect.setAttribute('height', '100');
+            rect.setAttribute('fill', 'url(#testGradient)');
+            rect.setAttribute('rx', '8');
+            svg.appendChild(rect);
+            
+            // Add text
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', '150');
+            text.setAttribute('y', '105');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('fill', 'white');
+            text.setAttribute('font-size', '16');
+            text.setAttribute('font-weight', '600');
+            text.textContent = 'Gradient Test';
+            svg.appendChild(text);
+            
+            statusEl.innerHTML = '<span class="success">✓ Components rendering correctly!</span>';
+            
+            // Test shadow filter
+            const shadowFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+            shadowFilter.setAttribute('id', 'testShadow');
+            shadowFilter.innerHTML = `
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                <feOffset dx="2" dy="2" result="offsetblur"/>
+                <feFlood flood-color="#000000" flood-opacity="0.2"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            `;
+            defs.appendChild(shadowFilter);
+            
+            // Create a component with shadow
+            const component = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            component.setAttribute('transform', 'translate(300, 50)');
+            component.setAttribute('filter', 'url(#testShadow)');
+            
+            const compRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            compRect.setAttribute('width', '200');
+            compRect.setAttribute('height', '100');
+            compRect.setAttribute('fill', '#374151');
+            compRect.setAttribute('rx', '8');
+            component.appendChild(compRect);
+            
+            const compText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            compText.setAttribute('x', '100');
+            compText.setAttribute('y', '55');
+            compText.setAttribute('text-anchor', 'middle');
+            compText.setAttribute('fill', 'white');
+            compText.setAttribute('font-size', '16');
+            compText.setAttribute('font-weight', '600');
+            compText.textContent = 'Shadow Test';
+            component.appendChild(compText);
+            
+            svg.appendChild(component);
+            
+        } catch (error) {
+            statusEl.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            console.error(error);
+        }
+    </script>
+</body>
+</html>

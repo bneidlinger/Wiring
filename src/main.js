@@ -10,6 +10,13 @@ import { UIManager } from './ui/UIManager.js';
 import { ComponentLibrary } from './componentLibrary/ComponentLibrary.js';
 import { ComponentLibraryPanel } from './componentLibrary/ui/ComponentLibraryPanel.js';
 
+// Import debug module in development
+if (import.meta.env.DEV) {
+    import('./debug/dragDebug.js').then(module => {
+        console.log('Drag debugger loaded');
+    });
+}
+
 class WiringDiagramApp {
     constructor() {
         this.canvas = null;
@@ -49,7 +56,7 @@ class WiringDiagramApp {
             zoomScaleSensitivity: 0.5,
             dblClickZoomEnabled: false,
             mouseWheelZoomEnabled: true,
-            preventMouseEventsDefault: true,
+            preventMouseEventsDefault: false, // Allow mouse events to propagate to components
             panEnabled: true,
             controlIconsEnabled: false,
             onPan: () => {
@@ -58,6 +65,13 @@ class WiringDiagramApp {
             onZoom: (newZoom) => {
                 this.canvas.zoomLevel = newZoom;
                 this.canvas.updateViewportBounds();
+            },
+            beforePan: (oldPan, newPan) => {
+                // Don't pan if we're dragging a component
+                if (document.querySelector('.component.dragging')) {
+                    return false;
+                }
+                return true;
             }
         });
         
@@ -97,14 +111,19 @@ class WiringDiagramApp {
         // Set global reference for pan-zoom access
         window.wiringDiagramApp = this;
         
+        // Initialize with select tool
+        this.selectTool('select');
+        
         console.log('Wiring Diagram App initialized');
     }
 
     setupEventListeners() {
-        // Tool selection
-        document.querySelectorAll('.tool-btn').forEach(btn => {
+        // Tool selection - find buttons with data-tool attribute
+        document.querySelectorAll('[data-tool]').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.selectTool(e.target.dataset.tool);
+                const tool = e.currentTarget.dataset.tool;
+                console.log('Tool button clicked:', tool);
+                this.selectTool(tool);
             });
         });
         
@@ -178,6 +197,7 @@ class WiringDiagramApp {
     }
 
     selectTool(toolName) {
+        console.log('Selecting tool:', toolName);
         this.currentTool = toolName;
         
         // Update canvas mode
@@ -191,6 +211,17 @@ class WiringDiagramApp {
             // Always ensure pan is enabled for non-wire tools
             this.panZoomInstance.enablePan();
         }
+        
+        // Update UI button states
+        document.querySelectorAll('[data-tool]').forEach(btn => {
+            if (btn.dataset.tool === toolName) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+            } else {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-pressed', 'false');
+            }
+        });
         
         // UI updates are handled by UIManager
     }

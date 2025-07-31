@@ -21,7 +21,7 @@
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
-            --bg-canvas: #fafafa;
+            --bg-canvas: #f3f4f6;
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --text-tertiary: #64748b;
@@ -53,7 +53,7 @@
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
-            --bg-canvas: #1a1a1a;
+            --bg-canvas: #1f2937;
             --text-primary: #f1f5f9;
             --text-secondary: #cbd5e1;
             --text-tertiary: #94a3b8;
@@ -672,10 +672,26 @@
         }
         
         /* Component states */
-        .component.selected rect {
-            stroke: var(--primary-color);
-            stroke-width: 2;
-            filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.3));
+        .component {
+            cursor: move;
+        }
+        
+        .component.selected .component-drag-handle {
+            stroke: var(--primary-color) !important;
+            stroke-width: 3 !important;
+            stroke-dasharray: none !important;
+            filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.5));
+        }
+        
+        /* Debug: Make drag handles visible during development */
+        .component-drag-handle {
+            stroke-dasharray: 5,5;
+            stroke: rgba(128, 128, 128, 0.3);
+        }
+        
+        /* Show move cursor on entire component when hovering */
+        .component:hover {
+            cursor: move;
         }
         
         .terminal {
@@ -697,11 +713,39 @@
         .component-drag-handle {
             cursor: move !important;
             pointer-events: all !important;
-            fill-opacity: 0.01; /* Nearly invisible but still captures events */
+            fill: rgba(0, 0, 0, 0.01); /* Very faint fill to ensure mouse events */
+            stroke-opacity: 1;
+            transition: all 0.2s ease;
+            /* Ensure drag handle is on top */
+            z-index: 10;
         }
         
+        /* Direct hover on drag handle */
         .component-drag-handle:hover {
-            fill-opacity: 0.05; /* Slight highlight on hover */
+            stroke: var(--primary-color) !important;
+            stroke-width: 3 !important;
+            fill: rgba(0, 123, 255, 0.1) !important;
+            filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.3));
+        }
+        
+        /* Component hover state - apply to all drag handles */
+        .component:hover .component-drag-handle {
+            stroke: var(--primary-color) !important;
+            stroke-opacity: 0.8 !important;
+            stroke-width: 2.5 !important;
+            fill: rgba(0, 123, 255, 0.05) !important;
+        }
+        
+        /* Active dragging state */
+        .component.dragging {
+            opacity: 0.9;
+        }
+        
+        .component.dragging .component-drag-handle {
+            cursor: grabbing !important;
+            stroke: var(--primary-color) !important;
+            stroke-width: 4 !important;
+            filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.5));
         }
         
         /* Prevent component graphics from blocking interactions */
@@ -921,6 +965,27 @@
                             <span class="component-name">iSTAR G2</span>
                         </div>
                         <div class="component-item" 
+                             data-type="B9512G" 
+                             draggable="true"
+                             role="listitem"
+                             tabindex="0"
+                             aria-label="Bosch B9512G Control Panel">
+                            <svg class="component-preview" viewBox="0 0 100 60" width="100%" height="48">
+                                <rect x="5" y="5" width="90" height="50" fill="#f8f9fa" stroke="#495057" stroke-width="1" rx="2"/>
+                                <rect x="10" y="10" width="20" height="10" fill="#dc3545" rx="1"/>
+                                <text x="20" y="17" text-anchor="middle" font-size="6" font-weight="bold" fill="#ffffff">BOSCH</text>
+                                <text x="35" y="17" font-size="5" fill="#212529">B9512G</text>
+                                <rect x="10" y="25" width="35" height="25" fill="#343a40" rx="1"/>
+                                <rect x="50" y="25" width="40" height="25" fill="#343a40" rx="1"/>
+                                <circle cx="20" cy="35" r="2" fill="#28a745"/>
+                                <circle cx="30" cy="35" r="2" fill="#ffc107"/>
+                                <circle cx="60" cy="35" r="2" fill="#28a745"/>
+                                <circle cx="70" cy="35" r="2" fill="#dc3545"/>
+                                <circle cx="80" cy="35" r="2" fill="#17a2b8"/>
+                            </svg>
+                            <span class="component-name">Bosch B9512G</span>
+                        </div>
+                        <div class="component-item" 
                              data-type="OUTPUT" 
                              draggable="true"
                              role="listitem"
@@ -1031,11 +1096,11 @@
                     </pattern>
                 </defs>
                 
-                <rect width="100%" height="100%" fill="url(#grid)" />
+                <rect width="100%" height="100%" fill="url(#grid)" style="pointer-events: none;" />
                 
                 <g id="viewport">
                     <rect class="cabinet-boundary" x="100" y="100" width="4800" height="2900" 
-                          fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10,5" opacity="0.3"/>
+                          fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10,5" opacity="0.3" style="pointer-events: none;"/>
                     <g id="components"></g>
                     <g id="wires"></g>
                     <g id="labels"></g>

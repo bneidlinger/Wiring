@@ -4,79 +4,160 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an Interactive Wiring-Diagram Builder - a browser-based tool for technicians to create oversized cabinet diagrams with boards, readers, power supplies, and color-coded wire routing.
+Interactive Wiring Diagram Builder - A professional-grade, browser-based tool for creating technical wiring diagrams for access control systems with real-time wire routing and comprehensive component libraries.
 
 ## Tech Stack
 
-- **Canvas**: Plain SVG in the DOM for inspectable elements
-- **Pan/Zoom**: svg-pan-zoom library (1kB gzipped)
-- **Drag/Drop**: interact.js
-- **Wire Routing**: Orthogonal (Manhattan) paths with A* pathfinding
-- **State Storage**: JSON in localStorage
-- **Export**: canvg for SVG to PNG conversion
-- **UI Framework**: Vanilla JS + lit-html or React
-- **Build Tool**: Vite (implied from development plan)
-
-## Project Structure
-
-```
-/public
-  index.html
-/src
-  main.js          # Application entry point
-  svgCanvas.js     # SVG viewport and pan/zoom handling
-  elementFactory.js # Creates boards, readers, PSUs, terminal blocks
-  wireTool.js      # Wire drawing and routing logic
-  stateStore.js    # JSON state management and persistence
-  ui/
-    palette.js     # Component palette sidebar
-    modalEditor.js # Label and property editors
-/assets
-  textures/steel.jpg # Background texture
-  icons/*.svg        # Component icons
-```
-
-## Domain Model
-
-- **Project**: Root container with canvas settings and elements
-- **Board**: Type can be 'GCM', 'ACM', or 'PSU' with position and configuration
-- **Reader**: Has position and facing direction
-- **TerminalBlock**: Attached to parent elements with pin connections
-- **Wire**: Connects pins between elements with color, gauge, and label properties
-
-## Key Implementation Notes
-
-1. **Canvas Size**: Support up to 10,000 × 6,000 SVG units for large cabinet diagrams
-2. **Grid Snapping**: Elements should snap to grid for alignment
-3. **Wire Routing**: Implement Manhattan-style routing with collision avoidance
-4. **Performance**: Consider virtual rendering for large diagrams to prevent lag
-5. **Export Requirements**: Support PNG export at 300 DPI for printing
+- **Frontend**: Vanilla JavaScript (ES6+), no framework
+- **Canvas**: SVG DOM with svg-pan-zoom library for viewport control
+- **Drag/Drop**: interact.js for component placement
+- **Wire Routing**: Custom A* pathfinding for orthogonal (Manhattan) paths
+- **State Management**: Custom implementation with Command pattern for undo/redo
+- **Export**: canvg for SVG→PNG, jspdf and svg2pdf.js for PDF export
+- **Build Tool**: Vite
+- **Testing**: Jest (unit), Playwright (E2E/visual), WebdriverIO (cross-browser)
 
 ## Development Commands
 
-Since this project is in planning phase, typical commands would be:
-
 ```bash
-# Install dependencies (once package.json exists)
+# Install dependencies
 npm install
 
-# Start development server (Vite)
+# Development server (http://localhost:5173)
 npm run dev
 
-# Build for production
+# Production build
 npm run build
 
-# Run linting (when configured)
-npm run lint
+# Preview production build
+npm run preview
+
+# Testing commands
+npm test                    # Run all tests (unit + visual + e2e)
+npm run test:unit          # Jest unit tests only
+npm run test:e2e           # Playwright E2E tests
+npm run test:visual        # Visual regression tests
+npm run test:visual:update # Update visual snapshots
+npm run test:a11y          # Accessibility tests
+npm run test:perf          # Performance tests
+npm run coverage           # Generate coverage report
+
+# Run specific test file
+npm run test:unit -- src/svgCanvas.test.js
+npx playwright test tests/e2e/complete-workflow.spec.js
 ```
 
-## Current Status
+## Architecture Overview
 
-Project is in planning phase. Implementation follows this sequence:
-1. Bootstrap with build tools and basic HTML structure
-2. Core canvas with pan/zoom functionality
-3. Drag-and-drop palette for components
-4. Wire drawing tools
-5. Metadata/label editing
-6. Save/load and export features
-7. Advanced routing and polish
+### Core Application Flow
+1. **main.js** - Entry point, initializes all modules and coordinates between them
+2. **svgCanvas.js** - Manages SVG viewport, rendering, and viewport culling for performance
+3. **stateStore.js** - Central state management with Command pattern, auto-save, and persistence
+4. **elementFactory.js** - Creates SVG representations of components (boards, readers, etc.)
+5. **wireTool.js** - Handles wire drawing, connects to routers (A* or simple)
+
+### Command Pattern Implementation
+All user actions are implemented as Commands (src/commands/) enabling full undo/redo:
+- `AddElementCommand` / `RemoveElementCommand` - Component operations
+- `AddWireCommand` / `RemoveWireCommand` - Wire operations  
+- `UpdateElementCommand` / `UpdateWireCommand` - Property changes
+- `BatchCommand` - Groups multiple commands as one undoable action
+
+### Component System
+- **ComponentLibrary** (src/componentLibrary/) - Manages component templates and versions
+- Components have metadata: dimensions, terminal positions, properties
+- Terminal blocks are child elements with pin arrays for wire connections
+
+### Wire Routing System
+- **aStarRouter.js** - A* pathfinding for optimal orthogonal paths avoiding obstacles
+- **simpleWireRouter.js** - Basic L-shaped routing for performance
+- Wires connect between terminal pins, store color/gauge/label metadata
+
+### State Persistence
+- JSON state saved to localStorage with compression
+- Auto-save on every change with debouncing
+- State validation before save/load
+- Export/import project files
+
+### UI Architecture
+- **UIManager** - Coordinates UI state and tool switching
+- **Palette** - Drag-and-drop component library
+- **SaveIndicator** - Shows auto-save status
+- Context menus and property panels for element editing
+
+## Key Implementation Details
+
+### Canvas Performance
+- Viewport culling: Only render elements within view bounds
+- Level-of-detail: Simplified rendering when zoomed out
+- Batch DOM updates for wire routing
+- Maximum canvas: 10,000 × 6,000 SVG units
+
+### Wire Routing Rules
+- Orthogonal (90° angles only) paths
+- Collision detection with existing elements
+- Wire bundling when paths overlap
+- Color coding by function (power, data, etc.)
+
+### Component Properties
+- Each component type has specific metadata
+- Terminal blocks define pin layouts and functions
+- Labels support multi-line text with word wrap
+- Cabinet location tracking for installation
+
+### Accessibility
+- Full keyboard navigation (see UI_FEATURES.md for shortcuts)
+- ARIA labels and live regions
+- Focus management in modals
+- WCAG AA compliant contrast ratios
+
+## Testing Strategy
+
+### Unit Tests (Jest)
+- Test pure functions and class methods
+- Mock DOM and external dependencies
+- Coverage threshold: 80% for all metrics
+
+### E2E Tests (Playwright)
+- Complete workflows: create diagram, add components, route wires, export
+- Cross-browser testing on Chrome, Firefox, Safari, Edge
+- Mobile device testing
+
+### Visual Tests
+- Playwright visual regression for UI components
+- Canvas rendering consistency
+- Export quality verification
+
+### Performance Tests
+- Large diagram handling (1000+ components)
+- Memory leak detection
+- Render performance benchmarks
+
+## Common Development Tasks
+
+### Adding New Component Types
+1. Define SVG generation in `elementFactory.js`
+2. Add metadata to component library
+3. Create icon in assets/
+4. Update palette categories
+5. Add terminal pin definitions
+
+### Implementing New Wire Routing Algorithm
+1. Create new router class implementing base interface
+2. Add to wireTool.js routing options
+3. Update UI to allow algorithm selection
+4. Add performance tests
+
+### Adding Export Format
+1. Create new exporter in src/export/
+2. Implement conversion from SVG
+3. Add to ExportManager
+4. Update export dialog UI
+
+## Project Conventions
+
+- ES6+ modules, no transpilation needed
+- CSS variables for theming
+- BEM naming for CSS classes
+- JSDoc comments for public APIs
+- Descriptive git commits focusing on "why"

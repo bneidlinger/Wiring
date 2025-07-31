@@ -283,16 +283,30 @@ export class SvgCanvas {
         pt.x = event.clientX;
         pt.y = event.clientY;
         
-        // Transform to SVG coordinates
-        const screenCTM = this.svg.getScreenCTM();
-        const svgPt = pt.matrixTransform(screenCTM.inverse());
+        // Transform to SVG coordinates, accounting for viewport transformations
+        // Get the viewport element which svg-pan-zoom transforms
+        const viewport = this.viewport;
+        const screenCTM = viewport.getScreenCTM();
         
-        return {
-            x: svgPt.x,
-            y: svgPt.y,
-            gridX: this.snapToGrid(svgPt.x),
-            gridY: this.snapToGrid(svgPt.y)
-        };
+        if (screenCTM) {
+            const svgPt = pt.matrixTransform(screenCTM.inverse());
+            return {
+                x: svgPt.x,
+                y: svgPt.y,
+                gridX: this.snapToGrid(svgPt.x),
+                gridY: this.snapToGrid(svgPt.y)
+            };
+        } else {
+            // Fallback to svg element
+            const svgCTM = this.svg.getScreenCTM();
+            const svgPt = pt.matrixTransform(svgCTM.inverse());
+            return {
+                x: svgPt.x,
+                y: svgPt.y,
+                gridX: this.snapToGrid(svgPt.x),
+                gridY: this.snapToGrid(svgPt.y)
+            };
+        }
     }
 
     clear() {
